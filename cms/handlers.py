@@ -11,6 +11,8 @@ from time import strftime
 from logging import INFO, WARN, ERROR
 from traceback import format_exc
 
+from cms.admin.auth import unauthorized
+
 @app.context_processor
 def inject_titles():
     titles = Content.query.with_entities(Content.slug, Content.title).join(Type).filter(Type.name == 'page')
@@ -49,3 +51,9 @@ def handle_exception(e):
     if original is None:
         return render_template('error.html'), 500
     return render_template('error.html', error=original), 500
+
+unauthorized_log = configure_logging('unauthorized', WARN)
+
+@unauthorized.connect
+def log_unauthorized(app, user_id, username, **kwargs):
+    unauthorized_log.warning('Unauthorized: %s %s %s', timestamp, user_id, username)
