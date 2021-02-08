@@ -8,6 +8,7 @@ from cms.admin.models import Content, Type
 from logging import getLogger
 from logging.handlers import RotatingFileHandler
 from time import strftime
+from logging import INFO, WARN, ERROR
 from datetime import datetime
 
 request_log = getLogger('werkzeug')
@@ -22,8 +23,13 @@ def configure_logging(name, level):
     return log
 
 
-timestap = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-access_log = configure_logging('access', 'INFO')
+timestamp = strftime('[%d/%m/%Y %H:%M:%S]')
+access_log = configure_logging('access', INFO)
 
-def after_request():
-    info()
+@app.after_request
+def after_request(response):
+    if int(response.status_code) < 400:
+        access_log.info('%s - - %s "%s %s %s" %s -', request.remote_addr,
+        timestamp, request.method, request.path, request.scheme.upper(),
+        response.status_code)
+    return response
