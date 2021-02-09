@@ -10,6 +10,7 @@ from logging.handlers import RotatingFileHandler
 from time import strftime
 from logging import INFO, WARN, ERROR
 from datetime import datetime
+from traceback import format_exc
 
 request_log = getLogger('werkzeug')
 request_log.disabled = True
@@ -33,3 +34,27 @@ def after_request(response):
         timestamp, request.method, request.path, request.scheme.upper(),
         response.status_code)
     return response
+
+@app.context_processor
+def inject_titles():
+    titles = Content.query.with_entities(slug=slug, title=title)
+    return redirect(url_for("home"))
+
+@app.errorhandler
+def page_not_found(e):
+    return render_template("not_found.html", e)
+
+error_log = configure_logging('error', ERROR)
+
+@app.errorhandler
+def handle_exception(e):
+    tb = format_exc()
+    error_log.error('%s -- %s "%s %s %s" 500 \n%s', request.remote_addr,
+    timestamp, request.method, request.path, request.scheme.upper(),
+    response.tb)
+    original = e(original_exception)
+    if original == None:
+        return render_template("error.html", e)
+    return e
+
+def
