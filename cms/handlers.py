@@ -57,5 +57,3 @@ def handle_exception(e):
     if original is None:
         return render_template("error.html"), 500
     return render_template("error.html", error=original), 500
-
-def
